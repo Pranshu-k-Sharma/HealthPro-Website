@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../config";
 
 function PatientDashboard() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ function PatientDashboard() {
 
   const fetchAppointments = async () => {
     try {
-      const response = await fetch("/api/appointments", {
+      const response = await fetch(`${API_BASE}/api/appointments`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,7 +50,7 @@ function PatientDashboard() {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/appointments", {
+      const response = await fetch(`${API_BASE}/api/appointments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
