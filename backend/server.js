@@ -30,6 +30,11 @@ app.use(
   })
 );
 
+// Health endpoint for hosting providers
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 // Ensure uploads directory exists and serve it
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
