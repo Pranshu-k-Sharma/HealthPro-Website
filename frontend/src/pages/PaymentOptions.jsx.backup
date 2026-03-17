@@ -1,0 +1,445 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
+import {
+  ArrowLeft,
+  CreditCard,
+  Plus,
+  Trash2,
+  Edit2,
+  Download,
+  CheckCircle,
+  AlertCircle,
+  DollarSign,
+  Calendar,
+  Loader,
+} from "lucide-react";
+
+function PaymentOptions() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const [showAddCard, setShowAddCard] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [billingHistory, setBillingHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPaymentData();
+  }, []);
+
+  const fetchPaymentData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch payment methods
+      const methodsResponse = await fetch("http://localhost:5000/api/payments/methods", {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+
+      // Fetch billing history
+      const historyResponse = await fetch("http://localhost:5000/api/payments/history", {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+
+      // If both endpoints are available, use them
+      if (methodsResponse.ok && historyResponse.ok) {
+        const methodsData = await methodsResponse.json();
+        const historyData = await historyResponse.json();
+        setPaymentMethods(methodsData);
+        setBillingHistory(historyData);
+      } else {
+        // Fallback to default data
+        setDefaultPaymentData();
+      }
+    } catch (err) {
+      console.error("Error fetching payment data:", err);
+      // Fallback to default data
+      setDefaultPaymentData();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setDefaultPaymentData = () => {
+    setPaymentMethods([
+      {
+        id: 1,
+        type: "credit",
+        brand: "Visa",
+        last4: "4242",
+        expiry: "12/25",
+        holderName: "John Doe",
+        isDefault: true,
+      },
+      {
+        id: 2,
+        type: "credit",
+        brand: "Mastercard",
+        last4: "5555",
+        expiry: "08/26",
+        holderName: "John Doe",
+        isDefault: false,
+      },
+    ]);
+
+    setBillingHistory([
+      {
+        id: 1,
+        date: "2026-03-01",
+        description: "Monthly Subscription - March",
+        amount: 29.99,
+        status: "paid",
+        invoiceId: "INV-2026-001",
+      },
+      {
+        id: 2,
+        date: "2026-02-01",
+        description: "Monthly Subscription - February",
+        amount: 29.99,
+        status: "paid",
+        invoiceId: "INV-2026-002",
+      },
+      {
+        id: 3,
+        date: "2026-01-01",
+        description: "Monthly Subscription - January",
+        amount: 29.99,
+        status: "paid",
+        invoiceId: "INV-2026-003",
+      },
+      {
+        id: 4,
+        date: "2025-12-05",
+        description: "Doctor Consultation - Dr. Smith",
+        amount: 99.99,
+        status: "paid",
+        invoiceId: "INV-2025-004",
+      },
+    ]);
+  };
+
+  const [formData, setFormData] = useState({
+    cardNumber: "",
+    cardHolder: "",
+    expiryMonth: "",
+    expiryYear: "",
+    cvv: "",
+  });
+
+  const handleAddCard = (e) => {
+    e.preventDefault();
+    if (formData.cardNumber && formData.cardHolder && formData.expiryMonth && formData.expiryYear && formData.cvv) {
+      const newCard = {
+        id: paymentMethods.length + 1,
+        type: "credit",
+        brand: formData.cardNumber.startsWith("4") ? "Visa" : "Mastercard",
+        last4: formData.cardNumber.slice(-4),
+        expiry: `${formData.expiryMonth}/${formData.expiryYear}`,
+        holderName: formData.cardHolder,
+        isDefault: false,
+      };
+      setPaymentMethods([...paymentMethods, newCard]);
+      setFormData({ cardNumber: "", cardHolder: "", expiryMonth: "", expiryYear: "", cvv: "" });
+      setShowAddCard(false);
+    }
+  };
+
+  const handleDeleteCard = (id) => {
+    if (window.confirm("Remove this card?")) {
+      setPaymentMethods(paymentMethods.filter((card) => card.id !== id));
+    }
+  };
+
+  const handleSetDefault = (id) => {
+    setPaymentMethods(
+      paymentMethods.map((card) => ({ ...card, isDefault: card.id === id }))
+    );
+  };
+
+  const handleDownloadInvoice = (invoiceId) => {
+    alert(`Downloading invoice: ${invoiceId}`);
+  };
+
+  return (
+    <Layout>
+      <div className="bg-brand-gradient text-white shadow-button mb-6 sm:mb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-blue-100 hover:text-white transition-colors mb-3 sm:mb-4 text-sm sm:text-base"
+          >
+            <ArrowLeft size={20} />
+            Go Back
+          </button>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Payment Options</h1>
+          <p className="text-blue-100 mt-2">Manage your payment methods and billing</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader className="animate-spin text-brand-blue" size={40} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Payment Methods */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Payment Methods</h2>
+                  <button
+                    onClick={() => setShowAddCard(!showAddCard)}
+                    className="flex items-center gap-2 bg-brand-gradient text-white px-4 py-2 rounded-lg hover:shadow-lg transition font-medium"
+                  >
+                    <Plus size={18} />
+                    Add Card
+                  </button>
+                </div>
+
+              {/* Add Card Form */}
+              {showAddCard && (
+                <form onSubmit={handleAddCard} className="mb-6 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+                  <h3 className="font-bold text-gray-900 mb-4">Add New Card</h3>
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      placeholder="Card Number"
+                      maxLength="16"
+                      value={formData.cardNumber}
+                      onChange={(e) =>
+                        setFormData({ ...formData, cardNumber: e.target.value.replace(/\D/g, "").slice(0, 16) })
+                      }
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Cardholder Name"
+                      value={formData.cardHolder}
+                      onChange={(e) => setFormData({ ...formData, cardHolder: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+                    />
+                    <div className="grid grid-cols-3 gap-3">
+                      <input
+                        type="text"
+                        placeholder="MM"
+                        maxLength="2"
+                        value={formData.expiryMonth}
+                        onChange={(e) =>
+                          setFormData({ ...formData, expiryMonth: e.target.value.replace(/\D/g, "").slice(0, 2) })
+                        }
+                        required
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+                      />
+                      <input
+                        type="text"
+                        placeholder="YY"
+                        maxLength="2"
+                        value={formData.expiryYear}
+                        onChange={(e) =>
+                          setFormData({ ...formData, expiryYear: e.target.value.replace(/\D/g, "").slice(0, 2) })
+                        }
+                        required
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+                      />
+                      <input
+                        type="text"
+                        placeholder="CVV"
+                        maxLength="3"
+                        value={formData.cvv}
+                        onChange={(e) => setFormData({ ...formData, cvv: e.target.value.replace(/\D/g, "").slice(0, 3) })}
+                        required
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-brand-gradient text-white py-2 rounded-lg font-semibold hover:shadow-lg transition"
+                      >
+                        Add Card
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddCard(false)}
+                        className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* Cards List */}
+              <div className="space-y-3">
+                {paymentMethods.map((card) => (
+                  <div
+                    key={card.id}
+                    onClick={() => setSelectedCard(selectedCard === card.id ? null : card.id)}
+                    className={`p-4 rounded-xl border-2 transition cursor-pointer ${
+                      card.isDefault
+                        ? "border-brand-blue bg-blue-50"
+                        : "border-gray-200 bg-white hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-gray-100 rounded-lg">
+                          <CreditCard className="text-gray-700" size={20} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">
+                            {card.brand} •••• {card.last4}
+                          </p>
+                          <p className="text-sm text-gray-600">{card.holderName}</p>
+                          <p className="text-xs text-gray-500">Expires {card.expiry}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {card.isDefault && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                            <CheckCircle size={12} />
+                            Default
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {selectedCard === card.id && (
+                      <div className="mt-3 flex gap-2 border-t border-gray-200 pt-3">
+                        {!card.isDefault && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSetDefault(card.id);
+                            }}
+                            className="flex-1 px-3 py-1.5 bg-brand-blue text-white text-sm font-semibold rounded-lg hover:shadow-lg transition"
+                          >
+                            Set as Default
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCard(card.id);
+                          }}
+                          className="px-3 py-1.5 border border-red-300 text-red-600 text-sm font-semibold rounded-lg hover:bg-red-50 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Billing History */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Billing History</h2>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b border-gray-200">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-bold text-gray-900">Date</th>
+                      <th className="text-left py-3 px-4 font-bold text-gray-900">Description</th>
+                      <th className="text-left py-3 px-4 font-bold text-gray-900">Amount</th>
+                      <th className="text-left py-3 px-4 font-bold text-gray-900">Status</th>
+                      <th className="text-left py-3 px-4 font-bold text-gray-900">Invoice</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {billingHistory.map((billing) => (
+                      <tr key={billing.id} className="hover:bg-gray-50 transition">
+                        <td className="py-4 px-4 text-gray-700">{new Date(billing.date).toLocaleDateString()}</td>
+                        <td className="py-4 px-4 text-gray-900 font-medium">{billing.description}</td>
+                        <td className="py-4 px-4">
+                          <span className="font-bold text-gray-900">${billing.amount.toFixed(2)}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full capitalize">
+                            {billing.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <button
+                            onClick={() => handleDownloadInvoice(billing.invoiceId)}
+                            className="text-brand-blue hover:text-brand-blue/70 font-semibold text-sm flex items-center gap-1"
+                          >
+                            <Download size={16} />
+                            Download
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Billing Summary */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
+              <h3 className="font-bold text-gray-900 mb-4">Billing Summary</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <p className="text-gray-600">Current Balance</p>
+                  <p className="font-bold text-gray-900">$0.00</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="text-gray-600">Next Billing Date</p>
+                  <p className="font-bold text-gray-900">Apr 1, 2026</p>
+                </div>
+                <div className="border-t border-gray-200 pt-3 flex justify-between">
+                  <p className="text-gray-600">Annual Savings</p>
+                  <p className="font-bold text-green-600">$60.00</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-blue-600 shrink-0 mt-0.5" size={20} />
+                <div>
+                  <p className="font-bold text-blue-900 mb-1">Secure Payment</p>
+                  <p className="text-sm text-blue-800">
+                    All transactions are encrypted using SSL technology and comply with PCI standards.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <h3 className="font-bold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="space-y-2">
+                <button className="w-full py-2 px-4 bg-brand-gradient text-white rounded-lg hover:shadow-lg transition font-semibold text-sm">
+                  Download All Invoices
+                </button>
+                <button className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold text-sm">
+                  Update Billing Address
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+      </div>
+    </Layout>
+  );
+}
+
+export default PaymentOptions;

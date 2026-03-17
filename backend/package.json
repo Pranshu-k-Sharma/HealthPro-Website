@@ -1,0 +1,45 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed:doctors": "node seeds/seedDoctors.js",
+    "seed:patients": "node seeds/seedPatients.js",
+    "seed:appointments": "node seeds/seedAppointments.js",
+    "seed:all": "node seeds/seedDoctors.js && node seeds/seedPatients.js && node seeds/seedAppointments.js",
+    "test": "jest --runInBand"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@napi-rs/canvas": "^0.1.96",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.6",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^8.0.1",
+    "pdf-parse": "^1.1.1",
+    "pdf2json": "^4.0.2",
+    "pdfjs-dist": "^5.5.207",
+    "pdfkit": "^0.17.2",
+    "razorpay": "^2.9.6",
+    "socket.io": "^4.8.3",
+    "tesseract.js": "^7.0.0",
+    "twilio": "^5.13.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^6.0.0"
+  }
+}

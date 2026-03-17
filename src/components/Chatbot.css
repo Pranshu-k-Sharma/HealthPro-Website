@@ -1,0 +1,19 @@
+.chatbot {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 260px;
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.chatbot input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.chatbot button {
+  width: 100%;
+}
