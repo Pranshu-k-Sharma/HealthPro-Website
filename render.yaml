@@ -1,11 +1,10 @@
 services:
   - type: web
     name: healthpro-backend
-    env: node
+    env: docker
     plan: free
-    rootDir: backend
-    buildCommand: npm ci
-    startCommand: npm start
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
