@@ -5,8 +5,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_API_URL = "https://healthpro-website.onrender.com"
-  VITE_SOCKET_URL = "https://healthpro-website.onrender.com"
+  VITE_API_URL = "https://healthpro-backend-wlhq.onrender.com"
+  VITE_SOCKET_URL = "https://healthpro-backend-wlhq.onrender.com"
   VITE_HEALTHPRO_UPI_ID = "pranshuksharma2002-1@okaxis"
   VITE_HEALTHPRO_UPI_QR_PATH = "/images/payments/QR.jpeg"
 
